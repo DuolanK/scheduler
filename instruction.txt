@@ -1,0 +1,7 @@
+sudo apt update && sudo apt install python3-tk -y
+source myenv/bin/activate
+sudo apt update && sudo apt install python3-tk -y
+pip install pillow or pip install --upgrade pillow
+pip install pyinstaller 
+
+pyinstaller --onefile --noconsole --hidden-import=PIL._tkinter_finder --add-data "onepiece.jpg:." main.py
