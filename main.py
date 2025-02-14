@@ -22,6 +22,7 @@ def create_db():
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             name TEXT NOT NULL,
             done BOOLEAN NOT NULL,
+            created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
             deleted_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )
         """)
@@ -128,22 +129,29 @@ def show_stats():
     month_ago = today - timedelta(days=30)
     year_ago = today - timedelta(days=365)
 
-    cursor.execute("SELECT COUNT(*) FROM records WHERE done = 1 AND DATE(created_at) = DATE(?)", (today,))
+    query = """
+    SELECT COUNT(*) FROM (
+        SELECT done, created_at FROM records
+        UNION ALL
+        SELECT done, deleted_at AS created_at FROM archive
+    ) WHERE done = 1 AND DATE(created_at) = DATE(?)
+    """
+    cursor.execute(query, (today,))
     daily = cursor.fetchone()[0]
 
-    cursor.execute("SELECT COUNT(*) FROM records WHERE done = 1 AND DATE(created_at) >= DATE(?)", (week_ago,))
+    cursor.execute(query, (week_ago,))
     weekly = cursor.fetchone()[0]
 
-    cursor.execute("SELECT COUNT(*) FROM records WHERE done = 1 AND DATE(created_at) >= DATE(?)", (month_ago,))
+    cursor.execute(query, (month_ago,))
     monthly = cursor.fetchone()[0]
 
-    cursor.execute("SELECT COUNT(*) FROM records WHERE done = 1 AND DATE(created_at) >= DATE(?)", (year_ago,))
+    cursor.execute(query, (year_ago,))
     yearly = cursor.fetchone()[0]
 
     conn.close()
 
     messagebox.showinfo("Статистика", f"Выполнено:\nСегодня: {daily}\nЗа неделю: {weekly}\nЗа месяц: {monthly}\nЗа год: {yearly}")
-
+    
 root = tk.Tk()
 root.title("Day AGENDA")
 root.geometry("800x600")
