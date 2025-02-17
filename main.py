@@ -129,12 +129,9 @@ def show_stats():
     month_ago = today - timedelta(days=30)
     year_ago = today - timedelta(days=365)
 
+    # Учитываем только записи, которые были завершены в нужном периоде
     query = """
-    SELECT COUNT(*) FROM (
-        SELECT done, created_at FROM records
-        UNION ALL
-        SELECT done, deleted_at AS created_at FROM archive
-    ) WHERE done = 1 AND DATE(created_at) = DATE(?)
+    SELECT COUNT(*) FROM records WHERE done = 1 AND DATE(created_at) >= DATE(?)
     """
     cursor.execute(query, (today,))
     daily = cursor.fetchone()[0]
@@ -147,6 +144,25 @@ def show_stats():
 
     cursor.execute(query, (year_ago,))
     yearly = cursor.fetchone()[0]
+
+    # Добавляем записи из архива, завершенные в нужный период
+    query_archive = """
+    SELECT COUNT(*) FROM archive 
+    WHERE done = 1 
+    AND DATE(created_at) >= DATE(?)
+    """
+    
+    cursor.execute(query_archive, (today,))
+    daily += cursor.fetchone()[0]
+
+    cursor.execute(query_archive, (week_ago,))
+    weekly += cursor.fetchone()[0]
+
+    cursor.execute(query_archive, (month_ago,))
+    monthly += cursor.fetchone()[0]
+
+    cursor.execute(query_archive, (year_ago,))
+    yearly += cursor.fetchone()[0]
 
     conn.close()
 
