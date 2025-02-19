@@ -1,9 +1,10 @@
 import tkinter as tk
-from tkinter import messagebox, Toplevel
+from tkinter import *
 import sqlite3
 import os
 from datetime import datetime, timedelta
 from PIL import Image, ImageTk
+from tkinter import messagebox
 
 def create_db():
     if not os.path.exists("records.db"):
@@ -80,8 +81,10 @@ def delete_record():
 
 def toggle_done():
     try:
-        selected_index = listbox.curselection()[0]
-        record_id = record_map[selected_index]
+        selected_index = listbox.curselection()
+        if not selected_index:
+            raise IndexError  # Генерируем ошибку, если элемент не выбран
+        record_id = record_map[selected_index[0]]
         conn = sqlite3.connect("records.db")
         cursor = conn.cursor()
         cursor.execute("UPDATE records SET done = NOT done WHERE id = ?", (record_id,))
@@ -172,31 +175,80 @@ root = tk.Tk()
 root.title("Day AGENDA")
 root.geometry("800x600")
 
-bg_image = Image.open("onepiece.jpg")
-bg_image = bg_image.resize((800, 600))
-bg_photo = ImageTk.PhotoImage(bg_image)
+class Example(Frame):
+    def __init__(self, master, *pargs):
+        Frame.__init__(self, master, *pargs)
 
-bg_label = tk.Label(root, image=bg_photo)
-bg_label.place(relwidth=1, relheight=1)
 
-entry_name = tk.Entry(root, width=40)
-button_add = tk.Button(root, text="Добавить запись", command=add_record, width=15)
-button_delete = tk.Button(root, text="Удалить запись", command=delete_record, width=15)
-button_toggle = tk.Button(root, text="Изменить статус", command=toggle_done, width=15)
-button_archive = tk.Button(root, text="Архив", command=show_archive, width=15)
-button_stats = tk.Button(root, text="Статистика", command=show_stats, width=15)
 
-listbox = tk.Listbox(root, width=40, height=15)
+        self.image = Image.open("onepiece.jpg")
+        self.img_copy= self.image.copy()
 
-entry_name.place(x=50, y=30)
-button_add.place(x=450, y=30)
-button_delete.place(x=450, y=70)
-button_toggle.place(x=450, y=110)
-button_archive.place(x=450, y=150)
-button_stats.place(x=450, y=190)
-listbox.place(x=50, y=70)
 
-create_db()
+        self.background_image = ImageTk.PhotoImage(self.image)
+
+        self.background = Label(self, image=self.background_image)
+        self.background.pack(fill=BOTH, expand=YES)
+        self.background.bind('<Configure>', self._resize_image)
+
+    def _resize_image(self,event):
+        new_width = event.width
+        new_height = event.height
+        self.image = self.img_copy.resize((new_width, new_height))
+        self.background_image = ImageTk.PhotoImage(self.image)
+        self.background.configure(image =  self.background_image)
+
+e = Example(root)
+e.grid(row=0, column=0, columnspan=3, rowspan=4, sticky="nsew")
+
+
+# Главный фрейм
+frame_main = tk.Frame(root)
+frame_main.grid(row=0, column=0, sticky="nsew", padx=(10,300), pady=(10,300))
+
+# Делаем `frame_main` адаптивным
+root.grid_rowconfigure(0, weight=1)
+root.grid_columnconfigure(0, weight=1)
+
+# Ввод и кнопки
+entry_name = tk.Entry(frame_main)
+entry_name.grid(row=0, column=0, columnspan=2, padx=5, pady=5, sticky="ew")
+
+button_add = tk.Button(frame_main, text="Добавить", command=add_record)
+button_add.grid(row=0, column=2, padx=5, pady=5, sticky="ew")
+
+# Контейнер для listbox и кнопок
+frame_content = tk.Frame(frame_main)
+frame_content.grid(row=1, column=0, columnspan=3, sticky="nsew")
+
+# Делаем `frame_content` адаптивным
+frame_main.grid_rowconfigure(1, weight=1)
+frame_main.grid_columnconfigure(0, weight=1)
+
+# Listbox (адаптивный)
+listbox = tk.Listbox(frame_content)
+listbox.grid(row=0, column=0, padx=5, pady=5, sticky="nsew")
+
+# Делаем listbox адаптивным
+frame_content.grid_rowconfigure(0, weight=1)
+frame_content.grid_columnconfigure(0, weight=1)
+
+# Фрейм для кнопок
+frame_buttons = tk.Frame(frame_content)
+frame_buttons.grid(row=0, column=1, padx=5, pady=5, sticky="ns")
+
+# Кнопки справа
+buttons = {
+    "Удалить": delete_record,
+    "Статус": toggle_done,
+    "Архив": show_archive,
+    "Статистика": show_stats
+}
+
+for text, command in buttons.items():
+    btn = tk.Button(frame_buttons, text=text, width=15, command=command)
+    btn.pack(fill=tk.X, pady=2)
+
 update_record_list()
 
 root.mainloop()
