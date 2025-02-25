@@ -1,7 +1,21 @@
-sudo apt update && sudo apt install python3-tk -y
+sudo apt update
+sudo apt install python3-venv
+python3 -m venv venv
 source myenv/bin/activate
 sudo apt update && sudo apt install python3-tk -y
 pip install pillow or pip install --upgrade pillow
 pip install pyinstaller 
 
 pyinstaller --onefile --noconsole --hidden-import=PIL._tkinter_finder --add-data "onepiece.jpg:." main.py
+
+nano ~/.local/share/applications/scheduler.desktop
+
+
+[Desktop Entry]
+Name=scheduler
+Comment=Your App Description
+Exec=/home/duo/PycharmProjects/scheduler/dist/main
+Icon=/home/duo/PycharmProjects/scheduler/dist/one.png
+Terminal=false
+Type=Application
+Categories=Utility;

@@ -45,21 +45,32 @@ def add_record():
 
 record_map = {}
 
-def update_record_list():
-    listbox.delete(0, tk.END)
+def check_table_exists():
     conn = sqlite3.connect("records.db")
     cursor = conn.cursor()
-    cursor.execute("SELECT id, name, done FROM records")
-    records = cursor.fetchall()
+    cursor.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='records'")
+    table_exists = cursor.fetchone() is not None
     conn.close()
+    return table_exists
 
-    global record_map
-    record_map = {}
+def update_record_list():
+    if check_table_exists():  # Обновление только если таблица существует
+        listbox.delete(0, tk.END)
+        conn = sqlite3.connect("records.db")
+        cursor = conn.cursor()
+        cursor.execute("SELECT id, name, done FROM records")
+        records = cursor.fetchall()
+        conn.close()
 
-    for index, record in enumerate(records):
-        status = "✔" if record[2] else "✘"
-        listbox.insert(tk.END, f"{record[1]} [{status}]")
-        record_map[index] = record[0]
+        global record_map
+        record_map = {}
+
+        for index, record in enumerate(records):
+            status = "✔" if record[2] else "✘"
+            listbox.insert(tk.END, f"{record[1]} [{status}]")
+            record_map[index] = record[0]
+    else:
+        print("Таблица 'records' не существует, обновление не выполнено.")
 
 def delete_record():
     try:
@@ -181,7 +192,7 @@ class Example(Frame):
 
 
 
-        self.image = Image.open("onepiece.jpg")
+        self.image = Image.open("/home/duo/PycharmProjects/scheduler/dist/onepiece.jpg")
         self.img_copy= self.image.copy()
 
 
@@ -248,6 +259,7 @@ buttons = {
 for text, command in buttons.items():
     btn = tk.Button(frame_buttons, text=text, width=15, command=command)
     btn.pack(fill=tk.X, pady=2)
+
 
 update_record_list()
 
