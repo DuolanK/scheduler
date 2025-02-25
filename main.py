@@ -5,10 +5,18 @@ import os
 from datetime import datetime, timedelta
 from PIL import Image, ImageTk
 from tkinter import messagebox
+import os
+
+# Определяем фиксированный путь к БД
+BASE_DIR = os.path.expanduser("~/scheduler")  # Или "~/programs/scheduler"
+DB_PATH = os.path.join(BASE_DIR, "records.db")
+
+# Проверяем, существует ли папка, и создаем её при необходимости
+os.makedirs(BASE_DIR, exist_ok=True)
 
 def create_db():
-    if not os.path.exists("records.db"):
-        conn = sqlite3.connect("records.db")
+    if not os.path.exists(DB_PATH):  # Проверяем существование БД
+        conn = sqlite3.connect(DB_PATH)
         cursor = conn.cursor()
         cursor.execute("""
         CREATE TABLE IF NOT EXISTS records (
@@ -33,7 +41,7 @@ def create_db():
 def add_record():
     record_name = entry_name.get()
     if record_name:
-        conn = sqlite3.connect("records.db")
+        conn = sqlite3.connect(DB_PATH)
         cursor = conn.cursor()
         cursor.execute("INSERT INTO records (name, done) VALUES (?, ?)", (record_name, 0))
         conn.commit()
@@ -48,7 +56,7 @@ record_map = {}
 def update_record_list():
 
     listbox.delete(0, tk.END)
-    conn = sqlite3.connect("records.db")
+    conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
     cursor.execute("SELECT id, name, done FROM records")
     records = cursor.fetchall()
@@ -68,7 +76,7 @@ def delete_record():
         selected_index = listbox.curselection()[0]
         record_id = record_map[selected_index]
         
-        conn = sqlite3.connect("records.db")
+        conn = sqlite3.connect(DB_PATH)
         cursor = conn.cursor()
         
         # Перемещаем в архив
@@ -87,7 +95,7 @@ def toggle_done():
         if not selected_index:
             raise IndexError  # Генерируем ошибку, если элемент не выбран
         record_id = record_map[selected_index[0]]
-        conn = sqlite3.connect("records.db")
+        conn = sqlite3.connect(DB_PATH)
         cursor = conn.cursor()
         cursor.execute("UPDATE records SET done = NOT done WHERE id = ?", (record_id,))
         conn.commit()
@@ -104,7 +112,7 @@ def show_archive():
     archive_listbox = tk.Listbox(archive_window, width=50, height=15)
     archive_listbox.pack(pady=10)
 
-    conn = sqlite3.connect("records.db")
+    conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
     cursor.execute("SELECT name, done, deleted_at FROM archive ORDER BY deleted_at DESC")
     records = cursor.fetchall()
@@ -115,7 +123,7 @@ def show_archive():
         archive_listbox.insert(tk.END, f"{record[0]} [{status}] - {record[2]}")
 
     def clear_archive():
-        conn = sqlite3.connect("records.db")
+        conn = sqlite3.connect(DB_PATH)
         cursor = conn.cursor()
         cursor.execute("DELETE FROM archive")
         conn.commit()
@@ -126,7 +134,7 @@ def show_archive():
     button_clear_archive.pack(pady=5)
 
 def show_stats():
-    conn = sqlite3.connect("records.db")
+    conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
 
     today = datetime.now().date()
