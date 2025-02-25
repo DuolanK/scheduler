@@ -54,23 +54,22 @@ def check_table_exists():
     return table_exists
 
 def update_record_list():
-    if check_table_exists():  # Обновление только если таблица существует
-        listbox.delete(0, tk.END)
-        conn = sqlite3.connect("records.db")
-        cursor = conn.cursor()
-        cursor.execute("SELECT id, name, done FROM records")
-        records = cursor.fetchall()
-        conn.close()
 
-        global record_map
-        record_map = {}
+    listbox.delete(0, tk.END)
+    conn = sqlite3.connect("records.db")
+    cursor = conn.cursor()
+    cursor.execute("SELECT id, name, done FROM records")
+    records = cursor.fetchall()
+    conn.close()
 
-        for index, record in enumerate(records):
-            status = "✔" if record[2] else "✘"
-            listbox.insert(tk.END, f"{record[1]} [{status}]")
-            record_map[index] = record[0]
-    else:
-        print("Таблица 'records' не существует, обновление не выполнено.")
+    global record_map
+    record_map = {}
+
+    for index, record in enumerate(records):
+        status = "✔" if record[2] else "✘"
+        listbox.insert(tk.END, f"{record[1]} [{status}]")
+        record_map[index] = record[0]
+
 
 def delete_record():
     try:
