@@ -45,14 +45,6 @@ def add_record():
 
 record_map = {}
 
-def check_table_exists():
-    conn = sqlite3.connect("records.db")
-    cursor = conn.cursor()
-    cursor.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='records'")
-    table_exists = cursor.fetchone() is not None
-    conn.close()
-    return table_exists
-
 def update_record_list():
 
     listbox.delete(0, tk.END)
