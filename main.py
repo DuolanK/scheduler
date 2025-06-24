@@ -15,28 +15,27 @@ DB_PATH = os.path.join(BASE_DIR, "records.db")
 os.makedirs(BASE_DIR, exist_ok=True)
 
 def create_db():
-    if not os.path.exists(DB_PATH):  # Проверяем существование БД
-        conn = sqlite3.connect(DB_PATH)
-        cursor = conn.cursor()
-        cursor.execute("""
-        CREATE TABLE IF NOT EXISTS records (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            name TEXT NOT NULL,
-            done BOOLEAN NOT NULL DEFAULT 0,
-            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-        )
-        """)
-        cursor.execute("""
-        CREATE TABLE IF NOT EXISTS archive (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            name TEXT NOT NULL,
-            done BOOLEAN NOT NULL,
-            created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-            deleted_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-        )
-        """)
-        conn.commit()
-        conn.close()
+    conn = sqlite3.connect(DB_PATH)
+    cursor = conn.cursor()
+    cursor.execute("""
+    CREATE TABLE IF NOT EXISTS records (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        name TEXT NOT NULL,
+        done BOOLEAN NOT NULL DEFAULT 0,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    )
+    """)
+    cursor.execute("""
+    CREATE TABLE IF NOT EXISTS archive (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        name TEXT NOT NULL,
+        done BOOLEAN NOT NULL,
+        created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        deleted_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    )
+    """)
+    conn.commit()
+    conn.close()
 
 def add_record():
     record_name = entry_name.get()
@@ -259,7 +258,7 @@ for text, command in buttons.items():
     btn = tk.Button(frame_buttons, text=text, width=15, command=command)
     btn.pack(fill=tk.X, pady=2)
 
-
+create_db()
 update_record_list()
 
 root.mainloop()
